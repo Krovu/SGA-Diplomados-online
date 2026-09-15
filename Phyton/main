@@ -74,6 +74,7 @@ class SGA:
         self._lista_de_alumnos = []
         self._lista_de_profesores = []
         self._cola_de_certificados = []
+        self._pila_notas = []  
 
     def Registrar_Profesor(self):
         print("\n--- REGISTRAR PROFESOR ---")
@@ -95,7 +96,6 @@ class SGA:
         tipo_programa = input("Tipo de Programa (Curso / Diplomado / Bootcamp): ").strip().lower()
         nombre_programa = input("Nombre específico del programa: ")
         
-        # Instanciar según el tipo de programa del diagrama
         if tipo_programa == "curso":
             programa = Curso(nombre_programa)
         elif tipo_programa == "diplomado":
@@ -121,11 +121,32 @@ class SGA:
             try:
                 nota = float(input(f"Ingrese la nota para {alumno_encontrado._nombre}: "))
                 alumno_encontrado.registrar_nota(nota)
+                
+                
+                self._pila_notas.append((alumno_encontrado, nota))
+                
                 print(f"--> Nota {nota} registrada exitosamente.")
             except ValueError:
                 print("Error: Ingrese un valor numérico válido.")
         else:
             print("Error: No se encontró ningún alumno con esa cédula.")
+
+    def Deshacer_Ultima_Nota(self):
+        print("\n--- DESHACER ÚLTIMA NOTA ---")
+        if not self._pila_notas:
+            print("⚠️ No hay acciones de notas en la pila para deshacer.")
+            return
+        
+        
+        alumno_afectado, nota_removida = self._pila_notas.pop()
+        
+        
+        if nota_removida in alumno_afectado._lista_de_notas:
+            idx = len(alumno_afectado._lista_de_notas) - 1 - alumno_afectado._lista_de_notas[::-1].index(nota_removida)
+            alumno_afectado._lista_de_notas.pop(idx)
+            print(f"🔄 ¡Éxito! Se ha deshecho la nota [{nota_removida}] del alumno {alumno_afectado._nombre}.")
+        else:
+            print(f"⚠️ Aviso: La nota ya no se encontraba en el registro del alumno.")
 
     def Cargar_Desde_Archivo(self):
         print("\n--- MIGRACIÓN DE DATOS DESDE TXT (FASE 1) ---")
@@ -144,10 +165,12 @@ class SGA:
                         
                         nuevo_alumno = Alumno(cedula, nombre, email, Bootcamp(programa_nombre))
                         
-                        # Agregar notas adicionales si existen en la línea
                         for nota_str in datos[4:]:
                             try:
-                                nuevo_alumno.registrar_nota(float(nota_str))
+                                nota = float(nota_str)
+                                nuevo_alumno.registrar_nota(nota)
+                                
+                                self._pila_notas.append((nuevo_alumno, nota))
                             except ValueError:
                                 pass
                                 
@@ -169,7 +192,6 @@ class SGA:
             promedio = alumno.Consultar_Promedio()
             programa_nombre = alumno._programa.get_nombre()
             
-            # Lógica de aprobación: Promedio mayor a 12
             if promedio > 12:
                 estado = "¡Aprobado / Se Gradúa! 🎓"
             else:
@@ -186,9 +208,10 @@ class SGA:
             print("1. Registrar Profesor")
             print("2. Registrar Alumno (Manual)")
             print("3. Registrar Nota a Alumno")
-            print("4. Cargar Alumnos desde Archivo .txt")
-            print("5. Generar Reporte de Alumnos y Estatus")
-            print("6. Salir")
+            print("4. Deshacer Última Nota Introducida")
+            print("5. Cargar Alumnos desde Archivo .txt")
+            print("6. Generar Reporte de Alumnos y Estatus")
+            print("7. Salir")
             print("="*35)
             
             opcion = input("Seleccione una opción: ")
@@ -200,10 +223,12 @@ class SGA:
             elif opcion == '3':
                 self.registrar_Notas()
             elif opcion == '4':
-                self.Cargar_Desde_Archivo()
+                self.Deshacer_Ultima_Nota()
             elif opcion == '5':
-                self.Generar_Reporte()
+                self.Cargar_Desde_Archivo()
             elif opcion == '6':
+                self.Generar_Reporte()
+            elif opcion == '7':
                 print("Saliendo del sistema... ¡Hasta luego!")
                 break
             else:
