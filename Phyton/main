@@ -1,240 +1,230 @@
-from pathlib import Path
-
-
 class Persona:
     def __init__(self, cedula, nombre, email):
-        self._cedula = cedula
-        self._nombre = nombre
-        self._email = email
-
-    def Asinar_Datos(self, cedula, nombre, email):
-        self._cedula = cedula
-        self._nombre = nombre
-        self._email = email
-        print(f"Datos asignados a {self._nombre}")
-
-    def get_cedula(self):
-        return self._cedula
+        self.cedula = cedula
+        self.nombre = nombre
+        self.email = email
 
 
 class Profesor(Persona):
     def __init__(self, cedula, nombre, email, especialidad, materia):
         super().__init__(cedula, nombre, email)
-        self._especialidad = especialidad
-        self._materia = materia
-
-    def Asinar_Materias(self, materia):
-        self._materia = materia
-        print(f"Materia {self._materia} asignada al profesor {self._nombre}")
+        self.especialidad = especialidad
+        self.materia = materia
 
 
 class ProgramaAcademico:
     def __init__(self, nombre_programa):
-        self._nombre_programa = nombre_programa
-
-    def Evaluar_Programa(self):
-        pass
-        
-    def get_nombre(self):
-        return self._nombre_programa
+        self.nombre_programa = nombre_programa
 
 
 class Curso(ProgramaAcademico):
-    def Evaluar_Aprobacion(self):
-        pass
+    pass
 
 
 class Diplomado(ProgramaAcademico):
-    def Evaluar_Aprobacion(self):
-        pass
+    pass
 
 
 class Bootcamp(ProgramaAcademico):
-    def Evaluar_Aprobacion(self):
-        pass
+    pass
 
 
 class Alumno(Persona):
-    def __init__(self, cedula, nombre, email, programa: ProgramaAcademico):
+    def __init__(self, cedula, nombre, email, programa):
         super().__init__(cedula, nombre, email)
-        self._programa = programa
-        self._lista_de_notas = []
+        self.programa = programa
+        self.notas = []
 
     def registrar_nota(self, nota):
-        self._lista_de_notas.append(nota)
+        self.notas.append(nota)
 
-    def Consultar_Promedio(self):
-        if not self._lista_de_notas:
+    def calcular_promedio(self):
+        if not self.notas:
             return 0.0
-        return sum(self._lista_de_notas) / len(self._lista_de_notas)
+        return sum(self.notas) / len(self.notas)
 
 
 class SGA:
     def __init__(self):
-        self._lista_de_alumnos = []
-        self._lista_de_profesores = []
-        self._cola_de_certificados = []
-        self._pila_notas = []  
+        self.alumnos = []
+        self.profesores = []
+        self.cola_certificados = []
+        self.pila_notas = []
 
-    def Registrar_Profesor(self):
-        print("\n--- REGISTRAR PROFESOR ---")
-        cedula = input("Cédula: ")
-        nombre = input("Nombre: ")
-        email = input("Email: ")
-        especialidad = input("Especialidad: ")
-        materia = input("Materia: ")
-        
-        nuevo_profesor = Profesor(cedula, nombre, email, especialidad, materia)
-        self._lista_de_profesores.append(nuevo_profesor)
-        print(f"Profesor {nombre} registrado con éxito.")
-
-    def Registrar_Alumnos(self):
-        print("\n--- REGISTRAR ALUMNO (MANUAL) ---")
-        cedula = input("Cédula: ")
-        nombre = input("Nombre: ")
-        email = input("Email: ")
-        tipo_programa = input("Tipo de Programa (Curso / Diplomado / Bootcamp): ").strip().lower()
-        nombre_programa = input("Nombre específico del programa: ")
-        
-        if tipo_programa == "curso":
-            programa = Curso(nombre_programa)
-        elif tipo_programa == "diplomado":
-            programa = Diplomado(nombre_programa)
-        else:
-            programa = Bootcamp(nombre_programa)
-            
-        nuevo_alumno = Alumno(cedula, nombre, email, programa)
-        self._lista_de_alumnos.append(nuevo_alumno)
-        print(f"Alumno {nombre} registrado con éxito.")
-
-    def registrar_Notas(self):
-        print("\n--- REGISTRAR NOTA ---")
-        cedula_buscada = input("Ingrese la cédula del alumno: ")
-        
-        alumno_encontrado = None
-        for alumno in self._lista_de_alumnos:
-            if alumno.get_cedula() == cedula_buscada:
-                alumno_encontrado = alumno
-                break
-                
-        if alumno_encontrado:
-            try:
-                nota = float(input(f"Ingrese la nota para {alumno_encontrado._nombre}: "))
-                alumno_encontrado.registrar_nota(nota)
-                
-                
-                self._pila_notas.append((alumno_encontrado, nota))
-                
-                print(f"--> Nota {nota} registrada exitosamente.")
-            except ValueError:
-                print("Error: Ingrese un valor numérico válido.")
-        else:
-            print("Error: No se encontró ningún alumno con esa cédula.")
-
-    def Deshacer_Ultima_Nota(self):
-        print("\n--- DESHACER ÚLTIMA NOTA ---")
-        if not self._pila_notas:
-            print("⚠️ No hay acciones de notas en la pila para deshacer.")
-            return
-        
-        
-        alumno_afectado, nota_removida = self._pila_notas.pop()
-        
-        
-        if nota_removida in alumno_afectado._lista_de_notas:
-            idx = len(alumno_afectado._lista_de_notas) - 1 - alumno_afectado._lista_de_notas[::-1].index(nota_removida)
-            alumno_afectado._lista_de_notas.pop(idx)
-            print(f"🔄 ¡Éxito! Se ha deshecho la nota [{nota_removida}] del alumno {alumno_afectado._nombre}.")
-        else:
-            print(f"⚠️ Aviso: La nota ya no se encontraba en el registro del alumno.")
-
-    def Cargar_Desde_Archivo(self):
-        print("\n--- MIGRACIÓN DE DATOS DESDE TXT (FASE 1) ---")
-        nombre_archivo = input("Ingrese el nombre del archivo (ej. alumnos.txt): ").strip().strip('"')
-        ruta_archivo = Path(nombre_archivo).expanduser()
-        if not ruta_archivo.is_absolute():
-            ruta_archivo = Path(__file__).resolve().parent / ruta_archivo
-        
+    def guardar_alumnos_txt(self):
         try:
-            with ruta_archivo.open('r', encoding='utf-8') as archivo:
-                contador = 0
-                for linea in archivo:
-                    datos = linea.strip().split(',')
-                    if len(datos) >= 4:
-                        cedula, nombre, email, programa_nombre = datos[0], datos[1], datos[2], datos[3]
-                        
-                        nuevo_alumno = Alumno(cedula, nombre, email, Bootcamp(programa_nombre))
-                        
-                        for nota_str in datos[4:]:
-                            try:
-                                nota = float(nota_str)
-                                nuevo_alumno.registrar_nota(nota)
-                                
-                                self._pila_notas.append((nuevo_alumno, nota))
-                            except ValueError:
-                                pass
-                                
-                        self._lista_de_alumnos.append(nuevo_alumno)
-                        contador += 1
-                        
-                print(f"¡Éxito! Se migraron {contador} alumnos desde '{nombre_archivo}'.")
-                
-        except FileNotFoundError:
-            print(f"Error: El archivo '{nombre_archivo}' no fue encontrado.")
+            f = open("Alumnos.txt", "w", encoding="utf-8")
+            for a in self.alumnos:
+                str_notas = ",".join(str(n) for n in a.notas) if a.notas else "Sin notas"
+                linea = f"{a.cedula};{a.nombre};{a.email};{a.programa.nombre_programa};{str_notas}\n"
+                f.write(linea)
+            f.close()
+        except Exception as err:
+            print("Error con el archivo Alumnos.txt:", err)
 
-    def Generar_Reporte(self):
-        print("\n=== REPORTE GENERAL Y ESTADO DE GRADUACIÓN ===")
-        if not self._lista_de_alumnos:
-            print("No hay alumnos registrados actualmente.")
-            return
-            
-        for alumno in self._lista_de_alumnos:
-            promedio = alumno.Consultar_Promedio()
-            programa_nombre = alumno._programa.get_nombre()
-            
-            if promedio > 12:
-                estado = "¡Aprobado / Se Gradúa! 🎓"
-            else:
-                estado = "No Cumple Requisito ❌"
-                
-            print(f"ID: {alumno.get_cedula()} | Alumno: {alumno._nombre} | Programa: {programa_nombre} | Promedio: {promedio:.2f} | Estado: {estado}")
-        print("================================================")
+    def registrar_profesor(self):
+        print("\n--- Registro Profesor ---")
+        ced = input("Cedula: ")
+        nom = input("Nombre: ")
+        email = input("Email: ")
+        esp = input("Especialidad: ")
+        mat = input("Materia: ")
 
-    def Mostrar_Opciones(self):
-        while True:
-            print("\n" + "="*35)
-            print(" SISTEMA DE GESTIÓN ACADÉMICA (SGA)")
-            print("="*35)
-            print("1. Registrar Profesor")
-            print("2. Registrar Alumno (Manual)")
-            print("3. Registrar Nota a Alumno")
-            print("4. Deshacer Última Nota Introducida")
-            print("5. Cargar Alumnos desde Archivo .txt")
-            print("6. Generar Reporte de Alumnos y Estatus")
-            print("7. Salir")
-            print("="*35)
-            
-            opcion = input("Seleccione una opción: ")
-            
-            if opcion == '1':
-                self.Registrar_Profesor()
-            elif opcion == '2':
-                self.Registrar_Alumnos()
-            elif opcion == '3':
-                self.registrar_Notas()
-            elif opcion == '4':
-                self.Deshacer_Ultima_Nota()
-            elif opcion == '5':
-                self.Cargar_Desde_Archivo()
-            elif opcion == '6':
-                self.Generar_Reporte()
-            elif opcion == '7':
-                print("Saliendo del sistema... ¡Hasta luego!")
+        p = Profesor(ced, nom, email, esp, mat)
+        self.profesores.append(p)
+        print("Profesor registrado.")
+
+    def registrar_alumno(self):
+        print("\n--- Registro Alumno ---")
+        ced = input("Cedula: ")
+        nom = input("Nombre: ")
+        email = input("Email: ")
+        tipo = input("Tipo (curso/diplomado/bootcamp): ").lower()
+        prog_nom = input("Nombre programa: ")
+
+        if tipo == "curso":
+            prog = Curso(prog_nom)
+        elif tipo == "diplomado":
+            prog = Diplomado(prog_nom)
+        else:
+            prog = Bootcamp(prog_nom)
+
+        al = Alumno(ced, nom, email, prog)
+        self.alumnos.append(al)
+        
+        self.guardar_alumnos_txt()
+        print("Alumno guardado exitosamente.")
+
+    def cargar_notas(self):
+        print("\n--- Cargar Notas ---")
+        ced = input("Ingrese la cedula del alumno: ")
+
+        alumno_sel = None
+        for a in self.alumnos:
+            if a.cedula == ced:
+                alumno_sel = a
                 break
+
+        if alumno_sel is None:
+            print("Alumno no encontrado.")
+            return
+
+        print(f"Cargando notas para {alumno_sel.nombre} (max 3). Enter para terminar.")
+        
+        cant = len(alumno_sel.notas)
+        mientras = True
+        while cant < 3 and mientras:
+            entrada = input(f"Nota {cant + 1}: ")
+            if entrada == "":
+                mientras = False
             else:
-                print("Opción no válida. Intente de nuevo.")
+                try:
+                    num = float(entrada)
+                    alumno_sel.registrar_nota(num)
+                    self.pila_notas.append((alumno_sel, num))
+                    cant += 1
+                except:
+                    print("Nota invalida, ingrese un numero.")
+
+        self.guardar_alumnos_txt()
+        print("Notas guardadas y archivo Alumnos.txt actualizado.")
+
+    def deshacer_nota(self):
+        print("\n--- Deshacer Nota ---")
+        if len(self.pila_notas) == 0:
+            print("No hay notas registradas para eliminar.")
+            return
+
+        ult_alumno, ult_nota = self.pila_notas.pop()
+        
+        if ult_nota in ult_alumno.notas:
+            ult_alumno.notas.remove(ult_nota)
+            self.guardar_alumnos_txt()
+            print(f"Se elimino la nota {ult_nota} de {ult_alumno.nombre} y se actualizo el txt.")
+
+    def gestionar_certificados(self):
+        print("\n--- EMISIÓN MASIVA DE CERTIFICADOS ---")
+        if len(self.alumnos) == 0:
+            print("Sin alumnos cargados.")
+            return
+
+        # Cargar a la cola a los alumnos aprobados (> 12)
+        for a in self.alumnos:
+            if a.calcular_promedio() > 12 and a not in self.cola_certificados:
+                self.cola_certificados.append(a)
+
+        if not self.cola_certificados:
+            print("No hay alumnos aprobados pendientes por certificar.")
+            return
+
+        # Escribir la lista en certificados_pendientes.txt antes de procesar
+        try:
+            with open("certificados_pendientes.txt", "w", encoding="utf-8") as f:
+                f.write("--- CERTIFICADOS PROCESADOS Y EMITIDOS ---\n")
+                for i, c in enumerate(self.cola_certificados, 1):
+                    f.write(f"{i}. Cedula: {c.cedula} | {c.nombre} | Promedio: {c.calcular_promedio():.2f} | Estatus: EMITIDO\n")
+        except Exception as e:
+            print("Error al escribir el archivo de certificados:", e)
+
+        print(f"Se encontraron {len(self.cola_certificados)} alumno(s) aprobados.")
+        
+        # Procesar y emitir todos los certificados en bucle
+        total_emitidos = 0
+        while len(self.cola_certificados) > 0:
+            alumno_emitido = self.cola_certificados.pop(0)
+            print(f"-> Certificado emitido a: {alumno_emitido.nombre} (Cedula: {alumno_emitido.cedula})")
+            total_emitidos += 1
+
+        print(f"\nProceso finalizado. Se emitieron {total_emitidos} certificado(s) de una vez.")
+        print("El archivo 'certificados_pendientes.txt' se ha actualizado.")
+
+    def mostrar_reporte(self):
+        print("\n--- REPORTE PROFESORES ---")
+        if not self.profesores:
+            print("Sin profesores registrados.")
+        for p in self.profesores:
+            print(f"Cedula: {p.cedula} | Nombre: {p.nombre} | Materia: {p.materia}")
+
+        print("\n--- REPORTE ALUMNOS ---")
+        if not self.alumnos:
+            print("Sin alumnos registrados.")
+        for a in self.alumnos:
+            prom = a.calcular_promedio()
+            est = "Aprobado" if prom > 12 else "Reprobado"
+            print(f"Cedula: {a.cedula} | Nombre: {a.nombre} | Notas: {a.notas} | Promedio: {prom:.2f} ({est})")
+
+    def menu(self):
+        opc = ""
+        while opc != "7":
+            print("\n*** MENU SGA ***")
+            print("1. Registrar Profesor")
+            print("2. Registrar Alumno")
+            print("3. Cargar Notas")
+            print("4. Deshacer Ultima Nota")
+            print("5. Emitir Todos los Certificados")
+            print("6. Ver Reporte")
+            print("7. Salir")
+            
+            opc = input("Opcion: ")
+
+            if opc == "1":
+                self.registrar_profesor()
+            elif opc == "2":
+                self.registrar_alumno()
+            elif opc == "3":
+                self.cargar_notas()
+            elif opc == "4":
+                self.deshacer_nota()
+            elif opc == "5":
+                self.gestionar_certificados()
+            elif opc == "6":
+                self.mostrar_reporte()
+            elif opc == "7":
+                print("Saliendo del programa...")
+            else:
+                print("Opcion no valida.")
 
 
 if __name__ == "__main__":
     sistema = SGA()
-    sistema.Mostrar_Opciones()
+    sistema.menu()
