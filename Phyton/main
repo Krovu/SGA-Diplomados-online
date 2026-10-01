@@ -12,21 +12,28 @@ class Profesor(Persona):
         self.materia = materia
 
 
+# --- POLIMORFISMO EN REGLAS DE APROBACIÓN ---
 class ProgramaAcademico:
     def __init__(self, nombre_programa):
         self.nombre_programa = nombre_programa
 
+    def es_aprobado(self, promedio):
+        return promedio >= 10.0
+
 
 class Curso(ProgramaAcademico):
-    pass
+    def es_aprobado(self, promedio):
+        return promedio >= 10.0
 
 
 class Diplomado(ProgramaAcademico):
-    pass
+    def es_aprobado(self, promedio):
+        return promedio >= 12.0
 
 
 class Bootcamp(ProgramaAcademico):
-    pass
+    def es_aprobado(self, promedio):
+        return promedio >= 14.0
 
 
 class Alumno(Persona):
@@ -43,6 +50,10 @@ class Alumno(Persona):
             return 0.0
         return sum(self.notas) / len(self.notas)
 
+    def esta_aprobado(self):
+        prom = self.calcular_promedio()
+        return self.programa.es_aprobado(prom)
+
 
 class SGA:
     def __init__(self):
@@ -50,54 +61,130 @@ class SGA:
         self.profesores = []
         self.cola_certificados = []
         self.pila_notas = []
+        
+        # Carga inicial
+        self.cargar_datos_iniciales()
+
+    def cargar_datos_iniciales(self):
+        """Lee el disco y refresca el estado en memoria con lo que haya en los .txt"""
+        # Limpiar listas en memoria antes de recargar
+        self.profesores.clear()
+        self.alumnos.clear()
+
+        # Cargar Profesores
+        try:
+            with open("Profesores.txt", "r", encoding="utf-8") as f:
+                for linea in f:
+                    linea_limpia = linea.strip()
+                    if not linea_limpia:
+                        continue
+                    datos = [d.strip() for d in linea_limpia.split(";")]
+                    if len(datos) >= 5:
+                        p = Profesor(datos[0], datos[1], datos[2], datos[3], datos[4])
+                        self.profesores.append(p)
+        except FileNotFoundError:
+            pass
+
+        # Cargar Alumnos 
+        try:
+            with open("Alumnos.txt", "r", encoding="utf-8") as f:
+                for linea in f:
+                    linea_limpia = linea.strip()
+                    if not linea_limpia:
+                        continue
+                    datos = [d.strip() for d in linea_limpia.split(";")]
+                    if len(datos) >= 5:
+                        ced, nom, email, tipo_prog, nom_prog = datos[0], datos[1], datos[2], datos[3], datos[4]
+                        
+                        # Recrear instancia polimórfica según el tipo guardado/editado
+                        tipo_str = tipo_prog.lower()
+                        if tipo_str == "curso":
+                            prog = Curso(nom_prog)
+                        elif tipo_str == "diplomado":
+                            prog = Diplomado(nom_prog)
+                        elif tipo_str == "bootcamp":
+                            prog = Bootcamp(nom_prog)
+                        else:
+                            prog = Curso(nom_prog)
+
+                        al = Alumno(ced, nom, email, prog)
+
+                        # Parseo de notas (si existen)
+                        if len(datos) >= 6 and datos[5] and datos[5] != "Sin notas":
+                            str_notas = datos[5].split(",")
+                            for n_str in str_notas:
+                                try:
+                                    al.registrar_nota(float(n_str.strip()))
+                                except ValueError:
+                                    pass  # Omite si el usuario escribió un texto inválido en las notas
+
+                        self.alumnos.append(al)
+        except FileNotFoundError:
+            pass
 
     def guardar_alumnos_txt(self):
         try:
-            f = open("Alumnos.txt", "w", encoding="utf-8")
-            for a in self.alumnos:
-                str_notas = ",".join(str(n) for n in a.notas) if a.notas else "Sin notas"
-                linea = f"{a.cedula};{a.nombre};{a.email};{a.programa.nombre_programa};{str_notas}\n"
-                f.write(linea)
-            f.close()
+            with open("Alumnos.txt", "w", encoding="utf-8") as f:
+                for a in self.alumnos:
+                    str_notas = ",".join(str(n) for n in a.notas) if a.notas else "Sin notas"
+                    tipo_prog = a.programa.__class__.__name__
+                    linea = f"{a.cedula};{a.nombre};{a.email};{tipo_prog};{a.programa.nombre_programa};{str_notas}\n"
+                    f.write(linea)
         except Exception as err:
-            print("Error con el archivo Alumnos.txt:", err)
+            print("Error al guardar Alumnos.txt:", err)
+
+    def guardar_profesores_txt(self):
+        try:
+            with open("Profesores.txt", "w", encoding="utf-8") as f:
+                for p in self.profesores:
+                    linea = f"{p.cedula};{p.nombre};{p.email};{p.especialidad};{p.materia}\n"
+                    f.write(linea)
+        except Exception as err:
+            print("Error al guardar Profesores.txt:", err)
 
     def registrar_profesor(self):
+        self.cargar_datos_iniciales()  # Sincroniza con disco
         print("\n--- Registro Profesor ---")
-        ced = input("Cedula: ")
-        nom = input("Nombre: ")
-        email = input("Email: ")
-        esp = input("Especialidad: ")
-        mat = input("Materia: ")
+        ced = input("Cedula: ").strip()
+        nom = input("Nombre: ").strip()
+        email = input("Email: ").strip()
+        esp = input("Especialidad: ").strip()
+        mat = input("Materia: ").strip()
 
         p = Profesor(ced, nom, email, esp, mat)
         self.profesores.append(p)
-        print("Profesor registrado.")
+        self.guardar_profesores_txt()
+        print("Profesor registrado y guardado en archivo.")
 
     def registrar_alumno(self):
+        self.cargar_datos_iniciales()  # Sincroniza con disco
         print("\n--- Registro Alumno ---")
-        ced = input("Cedula: ")
-        nom = input("Nombre: ")
-        email = input("Email: ")
-        tipo = input("Tipo (curso/diplomado/bootcamp): ").lower()
-        prog_nom = input("Nombre programa: ")
+        ced = input("Cedula: ").strip()
+        nom = input("Nombre: ").strip()
+        email = input("Email: ").strip()
+        tipo = input("Tipo (curso/diplomado/bootcamp): ").strip().lower()
+        prog_nom = input("Nombre programa: ").strip()
 
         if tipo == "curso":
             prog = Curso(prog_nom)
         elif tipo == "diplomado":
             prog = Diplomado(prog_nom)
-        else:
+        elif tipo == "bootcamp":
             prog = Bootcamp(prog_nom)
+        else:
+            print("Tipo no reconocido. Se asignara 'Curso' por defecto.")
+            prog = Curso(prog_nom)
 
         al = Alumno(ced, nom, email, prog)
         self.alumnos.append(al)
         
         self.guardar_alumnos_txt()
-        print("Alumno guardado exitosamente.")
+        print("Alumno guardado exitosamente en Alumnos.txt.")
 
     def cargar_notas(self):
+        self.cargar_datos_iniciales()  # Refresca por si modificaste notas o nombres a mano
         print("\n--- Cargar Notas ---")
-        ced = input("Ingrese la cedula del alumno: ")
+        ced = input("Ingrese la cedula del alumno: ").strip()
 
         alumno_sel = None
         for a in self.alumnos:
@@ -109,12 +196,12 @@ class SGA:
             print("Alumno no encontrado.")
             return
 
-        print(f"Cargando notas para {alumno_sel.nombre} (max 3). Enter para terminar.")
+        print(f"Cargando notas para {alumno_sel.nombre} ({alumno_sel.programa.__class__.__name__}). Enter vacio para salir.")
         
         cant = len(alumno_sel.notas)
         mientras = True
         while cant < 3 and mientras:
-            entrada = input(f"Nota {cant + 1}: ")
+            entrada = input(f"Nota {cant + 1}: ").strip()
             if entrada == "":
                 mientras = False
             else:
@@ -123,62 +210,74 @@ class SGA:
                     alumno_sel.registrar_nota(num)
                     self.pila_notas.append((alumno_sel, num))
                     cant += 1
-                except:
+                except ValueError:
                     print("Nota invalida, ingrese un numero.")
 
         self.guardar_alumnos_txt()
-        print("Notas guardadas y archivo Alumnos.txt actualizado.")
+        print("Notas actualizadas en disco.")
 
     def deshacer_nota(self):
+        self.cargar_datos_iniciales()  # Refresca archivo antes de eliminar
         print("\n--- Deshacer Nota ---")
         if len(self.pila_notas) == 0:
-            print("No hay notas registradas para eliminar.")
+            print("No hay notas registradas en esta sesion para eliminar.")
             return
 
         ult_alumno, ult_nota = self.pila_notas.pop()
         
-        if ult_nota in ult_alumno.notas:
-            ult_alumno.notas.remove(ult_nota)
+        # Buscar al alumno equivalente recargado de disco
+        alumno_actual = None
+        for a in self.alumnos:
+            if a.cedula == ult_alumno.cedula:
+                alumno_actual = a
+                break
+
+        if alumno_actual and ult_nota in alumno_actual.notas:
+            alumno_actual.notas.remove(ult_nota)
             self.guardar_alumnos_txt()
-            print(f"Se elimino la nota {ult_nota} de {ult_alumno.nombre} y se actualizo el txt.")
+            print(f"Se elimino la nota {ult_nota} de {alumno_actual.nombre} y se actualizo Alumnos.txt.")
 
     def gestionar_certificados(self):
+        self.cargar_datos_iniciales()  # Refresca por si cambiaste notas a mano en Alumnos.txt
         print("\n--- EMISIÓN MASIVA DE CERTIFICADOS ---")
         if len(self.alumnos) == 0:
             print("Sin alumnos cargados.")
             return
 
-        # Cargar a la cola a los alumnos aprobados (> 12)
+        self.cola_certificados.clear()
+
         for a in self.alumnos:
-            if a.calcular_promedio() > 12 and a not in self.cola_certificados:
+            if a.esta_aprobado():
                 self.cola_certificados.append(a)
 
         if not self.cola_certificados:
-            print("No hay alumnos aprobados pendientes por certificar.")
+            print("No hay alumnos que cumplan las condiciones de aprobacion de su programa.")
             return
 
-        # Escribir la lista en certificados_pendientes.txt antes de procesar
         try:
             with open("certificados_pendientes.txt", "w", encoding="utf-8") as f:
                 f.write("--- CERTIFICADOS PROCESADOS Y EMITIDOS ---\n")
                 for i, c in enumerate(self.cola_certificados, 1):
-                    f.write(f"{i}. Cedula: {c.cedula} | {c.nombre} | Promedio: {c.calcular_promedio():.2f} | Estatus: EMITIDO\n")
+                    prom = c.calcular_promedio()
+                    tipo = c.programa.__class__.__name__
+                    f.write(f"{i}. Cedula: {c.cedula} | {c.nombre} | Prog: {tipo} ({c.programa.nombre_programa}) | Prom: {prom:.2f} | Estatus: EMITIDO\n")
         except Exception as e:
             print("Error al escribir el archivo de certificados:", e)
 
         print(f"Se encontraron {len(self.cola_certificados)} alumno(s) aprobados.")
         
-        # Procesar y emitir todos los certificados en bucle
         total_emitidos = 0
         while len(self.cola_certificados) > 0:
             alumno_emitido = self.cola_certificados.pop(0)
-            print(f"-> Certificado emitido a: {alumno_emitido.nombre} (Cedula: {alumno_emitido.cedula})")
+            tipo_prog = alumno_emitido.programa.__class__.__name__
+            prom = alumno_emitido.calcular_promedio()
+            print(f"-> Certificado emitido: {alumno_emitido.nombre} | {tipo_prog} | Promedio: {prom:.2f}")
             total_emitidos += 1
 
-        print(f"\nProceso finalizado. Se emitieron {total_emitidos} certificado(s) de una vez.")
-        print("El archivo 'certificados_pendientes.txt' se ha actualizado.")
+        print(f"\nProceso finalizado. Se emitieron {total_emitidos} certificado(s).")
 
     def mostrar_reporte(self):
+        self.cargar_datos_iniciales()  # Sincroniza para mostrar datos editados externamente
         print("\n--- REPORTE PROFESORES ---")
         if not self.profesores:
             print("Sin profesores registrados.")
@@ -190,8 +289,9 @@ class SGA:
             print("Sin alumnos registrados.")
         for a in self.alumnos:
             prom = a.calcular_promedio()
-            est = "Aprobado" if prom > 12 else "Reprobado"
-            print(f"Cedula: {a.cedula} | Nombre: {a.nombre} | Notas: {a.notas} | Promedio: {prom:.2f} ({est})")
+            tipo_p = a.programa.__class__.__name__
+            est = "Aprobado" if a.esta_aprobado() else "Reprobado"
+            print(f"Cedula: {a.cedula} | Nombre: {a.nombre} | Programa: {tipo_p} ({a.programa.nombre_programa}) | Notas: {a.notas} | Promedio: {prom:.2f} ({est})")
 
     def menu(self):
         opc = ""
@@ -205,7 +305,7 @@ class SGA:
             print("6. Ver Reporte")
             print("7. Salir")
             
-            opc = input("Opcion: ")
+            opc = input("Opcion: ").strip()
 
             if opc == "1":
                 self.registrar_profesor()

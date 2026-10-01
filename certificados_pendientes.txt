@@ -1,0 +1,3 @@
+--- CERTIFICADOS PROCESADOS Y EMITIDOS ---
+1. Cedula: 1234 | batman | Prog: Bootcamp (bootcamp C++) | Prom: 15.00 | Estatus: EMITIDO
+2. Cedula: 909 | Trump | Prog: Diplomado (Diplomado en Programacion) | Prom: 15.00 | Estatus: EMITIDO
