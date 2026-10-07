@@ -1,4 +1,2 @@
-1234;Batman;Bat@mail.com;Bootcamp;bootcamp C++;14.0,15.0,16.0
-808;Simon;Simon@mail.com;Curso;programacion;9.0,6.0,11.0
-909;Trump;Trump@mail.com;Diplomado;Diplomado en Programacion;15.0,13.0,17.0
-708;Tony;Stark@mail.com;Diplomado;Diplomado en Programacion;17.6,16.8,19.0
+606,Urie,Urie@mail.com,Diplomado,13.0-16.0-15.0
+808,Juan,Juan@mail.com,Curso,17.0-13.0-15.0

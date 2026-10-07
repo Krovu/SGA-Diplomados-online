@@ -1,1 +1,1 @@
-123;Rhadames;Rha@mail.com;Programacion;Diplomado en programacion
+001,Rhadames,Rha@mail.com,Programacion,Diplomado de Programacion
