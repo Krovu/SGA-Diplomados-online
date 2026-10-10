@@ -65,7 +65,7 @@ class SGA:
         self.cargar_datos_iniciales()
 
     def cargar_datos_iniciales(self):
-        """Lee los archivos .txt usando separador por coma (,) y resincroniza memoria."""
+        """Lee los archivos .txt usando estrictamente comas (,) para todos los campos y notas."""
         self.profesores.clear()
         self.alumnos.clear()
 
@@ -83,8 +83,7 @@ class SGA:
         except FileNotFoundError:
             pass
 
-        # Cargar Alumnos: cedula,nombre,email,tipo_programa,nota1-nota2-nota3
-        # Formato de notas en archivo para evitar conflicto de comas: n1-n2-n3
+        # Cargar Alumnos: cedula,nombre,email,tipo_programa,nota1,nota2,nota3...
         try:
             with open("Alumnos.txt", "r", encoding="utf-8") as f:
                 for linea in f:
@@ -107,14 +106,14 @@ class SGA:
 
                         al = Alumno(ced, nom, email, prog)
 
-                        # Parseo de notas (separadas por guion en la 5ta columna)
-                        if len(datos) >= 5 and datos[4] and datos[4] != "Sin notas":
-                            str_notas = datos[4].split("-")
-                            for n_str in str_notas:
-                                try:
-                                    al.registrar_nota(float(n_str.strip()))
-                                except ValueError:
-                                    pass
+                        # Todo lo que esté a partir del índice 4 se interpreta como nota
+                        if len(datos) > 4:
+                            for n_str in datos[4:]:
+                                if n_str:
+                                    try:
+                                        al.registrar_nota(float(n_str))
+                                    except ValueError:
+                                        pass
 
                         self.alumnos.append(al)
         except FileNotFoundError:
@@ -124,10 +123,10 @@ class SGA:
         try:
             with open("Alumnos.txt", "w", encoding="utf-8") as f:
                 for a in self.alumnos:
-                    str_notas = "-".join(str(n) for n in a.notas) if a.notas else "Sin notas"
                     tipo_prog = a.programa.__class__.__name__
-                    # Campos separados estrictamente por coma
-                    linea = f"{a.cedula},{a.nombre},{a.email},{tipo_prog},{str_notas}\n"
+                    # Construimos la lista uniendo datos fijos y notas, todo separado por comas
+                    partes = [a.cedula, a.nombre, a.email, tipo_prog] + [str(n) for n in a.notas]
+                    linea = ",".join(partes) + "\n"
                     f.write(linea)
         except Exception as err:
             print("Error al guardar Alumnos.txt:", err)
@@ -136,7 +135,6 @@ class SGA:
         try:
             with open("Profesores.txt", "w", encoding="utf-8") as f:
                 for p in self.profesores:
-                    # Campos separados estrictamente por coma
                     linea = f"{p.cedula},{p.nombre},{p.email},{p.especialidad},{p.materia}\n"
                     f.write(linea)
         except Exception as err:
@@ -163,7 +161,6 @@ class SGA:
         nom = input("Nombre: ").strip()
         email = input("Email: ").strip()
 
-        # Validación obligatoria del programa académico
         prog = None
         while prog is None:
             tipo = input("Tipo de programa (Curso / Diplomado / Bootcamp): ").strip().lower()
@@ -260,7 +257,7 @@ class SGA:
                 for i, c in enumerate(self.cola_certificados, 1):
                     prom = c.calcular_promedio()
                     tipo = c.programa.nombre_programa
-                    f.write(f"{i}. Cedula: {c.cedula} | {c.nombre} | Prog: {tipo} | Prom: {prom:.2f} | Estatus: EMITIDO\n")
+                    f.write(f"{i}, Cedula: {c.cedula}, {c.nombre}, Prog: {tipo}, Prom: {prom:.2f}, Estatus: EMITIDO\n")
         except Exception as e:
             print("Error al escribir el archivo de certificados:", e)
 
