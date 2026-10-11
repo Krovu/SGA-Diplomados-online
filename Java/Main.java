@@ -52,7 +52,7 @@ class Diplomado extends ProgramaAcademico {
 class Bootcamp extends ProgramaAcademico {
     @Override
     public boolean esAprobado(double promedio) {
-        return promedio >= 16.0;
+        return promedio >= 14.0;
     }
 }
 
@@ -150,7 +150,7 @@ class SGA {
                 }
             }
         } catch (IOException e) {
-            // Archivo inexistente en la primera ejecución
+            
         }
     }
 
