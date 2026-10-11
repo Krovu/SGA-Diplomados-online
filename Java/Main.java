@@ -24,7 +24,7 @@ class Profesor extends Persona {
     }
 }
 
-// --- EN REGLAS DE APROBACIÓN ---
+// --- REGLAS DE APROBACIÓN ---
 abstract class ProgramaAcademico {
     String nombrePrograma;
 
@@ -71,10 +71,12 @@ class Alumno extends Persona {
     }
 
     public double calcularPromedio() {
-        if (notas.isEmpty()) return 0.0;
         double suma = 0;
-        for (double n : notas) suma += n;
-        return suma / notas.size();
+        for (double n : notas) {
+            suma += n;
+        }
+        // Las notas faltantes cuentan como 0, por lo que el denominador siempre es 3 fijo
+        return suma / 3.0;
     }
 
     public boolean estaAprobado() {
@@ -132,12 +134,11 @@ class SGA {
                     String email = datos[2].trim();
                     String tipo = datos[3].trim().toLowerCase();
 
-                    ProgramaAcademico prog;
-                    switch (tipo) {
-                        case "diplomado" -> prog = new Diplomado();
-                        case "bootcamp" -> prog = new Bootcamp();
-                        default -> prog = new Curso();
-                    }
+                    ProgramaAcademico prog = switch (tipo) {
+                        case "diplomado" -> new Diplomado();
+                        case "bootcamp" -> new Bootcamp();
+                        default -> new Curso();
+                    };
 
                     Alumno al = new Alumno(ced, nom, email, prog);
 
@@ -150,7 +151,7 @@ class SGA {
                 }
             }
         } catch (IOException e) {
-            
+            // Archivo inexistente en la primera ejecución
         }
     }
 

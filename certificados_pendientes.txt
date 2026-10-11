@@ -1,4 +1,3 @@
 --- CERTIFICADOS PROCESADOS Y EMITIDOS ---
-1, Cedula: 606, Urie, Prog: Diplomado, Prom: 14.00, Estatus: EMITIDO
-2, Cedula: 808, Juan, Prog: Curso, Prom: 14.00, Estatus: EMITIDO
-3, Cedula: 505, Flash, Prog: Bootcamp, Prom: 14.33, Estatus: EMITIDO
+1, Cedula: 808, Juan, Prog: Curso, Prom: 14.00, Estatus: EMITIDO
+2, Cedula: 505, Flash, Prog: Bootcamp, Prom: 14.33, Estatus: EMITIDO
