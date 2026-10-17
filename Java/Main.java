@@ -52,7 +52,7 @@ class Diplomado extends ProgramaAcademico {
 class Bootcamp extends ProgramaAcademico {
     @Override
     public boolean esAprobado(double promedio) {
-        return promedio >= 14.0;
+        return promedio >=16.0;
     }
 }
 

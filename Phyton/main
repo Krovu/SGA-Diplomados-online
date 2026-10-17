@@ -48,7 +48,8 @@ class Alumno(Persona):
     def calcular_promedio(self):
         if not self.notas:
             return 0.0
-        return sum(self.notas) / len(self.notas)
+    
+        return sum(self.notas) / 3.0
 
     def esta_aprobado(self):
         prom = self.calcular_promedio()
@@ -65,7 +66,6 @@ class SGA:
         self.cargar_datos_iniciales()
 
     def cargar_datos_iniciales(self):
-        """Lee los archivos .txt usando estrictamente comas (,) para todos los campos y notas."""
         self.profesores.clear()
         self.alumnos.clear()
 
@@ -95,9 +95,7 @@ class SGA:
                         ced, nom, email, tipo_prog = datos[0], datos[1], datos[2], datos[3]
                         
                         tipo_str = tipo_prog.lower()
-                        if tipo_str == "curso":
-                            prog = Curso()
-                        elif tipo_str == "diplomado":
+                        if tipo_str == "diplomado":
                             prog = Diplomado()
                         elif tipo_str == "bootcamp":
                             prog = Bootcamp()
@@ -106,7 +104,6 @@ class SGA:
 
                         al = Alumno(ced, nom, email, prog)
 
-                        # Todo lo que esté a partir del índice 4 se interpreta como nota
                         if len(datos) > 4:
                             for n_str in datos[4:]:
                                 if n_str:
@@ -124,7 +121,6 @@ class SGA:
             with open("Alumnos.txt", "w", encoding="utf-8") as f:
                 for a in self.alumnos:
                     tipo_prog = a.programa.__class__.__name__
-                    # Construimos la lista uniendo datos fijos y notas, todo separado por comas
                     partes = [a.cedula, a.nombre, a.email, tipo_prog] + [str(n) for n in a.notas]
                     linea = ",".join(partes) + "\n"
                     f.write(linea)
