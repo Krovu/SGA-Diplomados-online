@@ -2,29 +2,25 @@ import java.io.*;
 import java.util.*;
 
 class Persona {
-    protected String cedula;
-    protected String nombre;
-    protected String email;
+    String cedula, nombre, email;
 
-    public Persona(String cedula, String nombre, String email) {
-        this.cedula = cedula;
-        this.nombre = nombre;
-        this.email = email;
+    public Persona(String c, String n, String e) {
+        this.cedula = c;
+        this.nombre = n;
+        this.email = e;
     }
 }
 
 class Profesor extends Persona {
-    String especialidad;
-    String materia;
+    String especialidad, materia;
 
-    public Profesor(String cedula, String nombre, String email, String especialidad, String materia) {
-        super(cedula, nombre, email);
-        this.especialidad = especialidad;
-        this.materia = materia;
+    public Profesor(String c, String n, String e, String esp, String mat) {
+        super(c, n, e);
+        this.especialidad = esp;
+        this.materia = mat;
     }
 }
 
-// --- REGLAS DE APROBACIÓN ---
 abstract class ProgramaAcademico {
     String nombrePrograma;
 
@@ -37,32 +33,26 @@ abstract class ProgramaAcademico {
 
 class Curso extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) {
-        return promedio >= 10.0;
-    }
+    public boolean esAprobado(double promedio) { return promedio >= 10.0; }
 }
 
 class Diplomado extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) {
-        return promedio >= 14.0;
-    }
+    public boolean esAprobado(double promedio) { return promedio >= 14.0; }
 }
 
 class Bootcamp extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) {
-        return promedio >=16.0;
-    }
+    public boolean esAprobado(double promedio) { return promedio >= 16.0; }
 }
 
 class Alumno extends Persona {
     ProgramaAcademico programa;
     List<Double> notas;
 
-    public Alumno(String cedula, String nombre, String email, ProgramaAcademico programa) {
-        super(cedula, nombre, email);
-        this.programa = programa;
+    public Alumno(String c, String n, String e, ProgramaAcademico prog) {
+        super(c, n, e);
+        this.programa = prog;
         this.notas = new ArrayList<>();
     }
 
@@ -71,11 +61,9 @@ class Alumno extends Persona {
     }
 
     public double calcularPromedio() {
+        if (notas.isEmpty()) return 0.0;
         double suma = 0;
-        for (double n : notas) {
-            suma += n;
-        }
-        // Las notas faltantes cuentan como 0, por lo que el denominador siempre es 3 fijo
+        for (double n : notas) suma += n;
         return suma / 3.0;
     }
 
@@ -88,9 +76,9 @@ class NotaRegistro {
     Alumno alumno;
     double nota;
 
-    public NotaRegistro(Alumno alumno, double nota) {
-        this.alumno = alumno;
-        this.nota = nota;
+    public NotaRegistro(Alumno a, double n) {
+        this.alumno = a;
+        this.nota = n;
     }
 }
 
@@ -98,41 +86,37 @@ class SGA {
     private final List<Alumno> alumnos = new ArrayList<>();
     private final List<Profesor> profesores = new ArrayList<>();
     private final Stack<NotaRegistro> pilaNotas = new Stack<>();
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner sc = new Scanner(System.in);
 
     public SGA() {
-        cargarDatosIniciales();
+        cargarDatos();
     }
 
-    private void cargarDatosIniciales() {
+    private void cargarDatos() {
         alumnos.clear();
         profesores.clear();
 
-        // Cargar Profesores: cedula,nombre,email,especialidad,materia
         try (BufferedReader br = new BufferedReader(new FileReader("Profesores.txt"))) {
             String linea;
             while ((linea = br.readLine()) != null) {
                 if (linea.trim().isEmpty()) continue;
-                String[] datos = linea.split(",");
-                if (datos.length >= 5) {
-                    profesores.add(new Profesor(datos[0].trim(), datos[1].trim(), datos[2].trim(), datos[3].trim(), datos[4].trim()));
+                String[] d = linea.split(",");
+                if (d.length >= 5) {
+                    profesores.add(new Profesor(d[0].trim(), d[1].trim(), d[2].trim(), d[3].trim(), d[4].trim()));
                 }
             }
-        } catch (IOException e) {
-            // Archivo inexistente en la primera ejecución
-        }
+        } catch (IOException ignored) {}
 
-        // Cargar Alumnos: cedula,nombre,email,tipo_programa,nota1,nota2...
         try (BufferedReader br = new BufferedReader(new FileReader("Alumnos.txt"))) {
             String linea;
             while ((linea = br.readLine()) != null) {
                 if (linea.trim().isEmpty()) continue;
-                String[] datos = linea.split(",");
-                if (datos.length >= 4) {
-                    String ced = datos[0].trim();
-                    String nom = datos[1].trim();
-                    String email = datos[2].trim();
-                    String tipo = datos[3].trim().toLowerCase();
+                String[] d = linea.split(",");
+                if (d.length >= 4) {
+                    String ced = d[0].trim();
+                    String nom = d[1].trim();
+                    String email = d[2].trim();
+                    String tipo = d[3].trim().toLowerCase();
 
                     ProgramaAcademico prog = switch (tipo) {
                         case "diplomado" -> new Diplomado();
@@ -141,235 +125,217 @@ class SGA {
                     };
 
                     Alumno al = new Alumno(ced, nom, email, prog);
-
-                    for (int i = 4; i < datos.length; i++) {
+                    for (int i = 4; i < d.length; i++) {
                         try {
-                            al.registrarNota(Double.parseDouble(datos[i].trim()));
+                            double v = Double.parseDouble(d[i].trim());
+                            if (v >= 0 && v <= 20) al.registrarNota(v);
                         } catch (NumberFormatException ignored) {}
                     }
                     alumnos.add(al);
                 }
             }
-        } catch (IOException e) {
-            // Archivo inexistente en la primera ejecución
-        }
+        } catch (IOException ignored) {}
     }
 
-    public void guardarAlumnosTxt() {
+    public void guardarAlumnos() {
         try (PrintWriter pw = new PrintWriter(new FileWriter("Alumnos.txt"))) {
             for (Alumno a : alumnos) {
                 StringBuilder sb = new StringBuilder();
-                sb.append(a.cedula).append(",")
-                  .append(a.nombre).append(",")
-                  .append(a.email).append(",")
-                  .append(a.programa.getClass().getSimpleName());
-                for (double n : a.notas) {
-                    sb.append(",").append(n);
-                }
+                sb.append(a.cedula).append(",").append(a.nombre).append(",").append(a.email).append(",").append(a.programa.getClass().getSimpleName());
+                for (double n : a.notas) sb.append(",").append(n);
                 pw.println(sb.toString());
             }
         } catch (IOException e) {
-            System.out.println("Error al guardar Alumnos.txt: " + e.getMessage());
+            System.out.println("Error al guardar.");
         }
     }
 
-    public void guardarProfesoresTxt() {
+    public void guardarProfesores() {
         try (PrintWriter pw = new PrintWriter(new FileWriter("Profesores.txt"))) {
             for (Profesor p : profesores) {
                 pw.println(p.cedula + "," + p.nombre + "," + p.email + "," + p.especialidad + "," + p.materia);
             }
         } catch (IOException e) {
-            System.out.println("Error al guardar Profesores.txt: " + e.getMessage());
+            System.out.println("Error al guardar.");
         }
     }
 
     public void registrarProfesor() {
-        cargarDatosIniciales();
-        System.out.println("\n--- Registro Profesor ---");
-        System.out.print("Cedula: "); String ced = scanner.nextLine().trim();
-        System.out.print("Nombre: "); String nom = scanner.nextLine().trim();
-        System.out.print("Email: "); String email = scanner.nextLine().trim();
-        System.out.print("Especialidad: "); String esp = scanner.nextLine().trim();
-        System.out.print("Materia: "); String mat = scanner.nextLine().trim();
+        cargarDatos();
+        System.out.println("\n--- REGISTRAR PROFESOR ---");
+        System.out.print("Cedula: "); String ced = sc.nextLine().trim();
+        for (Profesor p : profesores) {
+            if (p.cedula.equals(ced)) {
+                System.out.println("Ya existe un profe con esa cedula.");
+                return;
+            }
+        }
+        System.out.print("Nombre: "); String nom = sc.nextLine().trim();
+        System.out.print("Email: "); String email = sc.nextLine().trim();
+        System.out.print("Especialidad: "); String esp = sc.nextLine().trim();
+        System.out.print("Materia: "); String mat = sc.nextLine().trim();
 
         profesores.add(new Profesor(ced, nom, email, esp, mat));
-        guardarProfesoresTxt();
-        System.out.println("Profesor registrado y guardado en archivo.");
+        guardarProfesores();
+        System.out.println("Profesor registrado.");
     }
 
     public void registrarAlumno() {
-        cargarDatosIniciales();
-        System.out.println("\n--- Registro Alumno ---");
-        System.out.print("Cedula: "); String ced = scanner.nextLine().trim();
-        System.out.print("Nombre: "); String nom = scanner.nextLine().trim();
-        System.out.print("Email: "); String email = scanner.nextLine().trim();
+        cargarDatos();
+        System.out.println("\n--- REGISTRAR ALUMNO ---");
+        System.out.print("Cedula: "); String ced = sc.nextLine().trim();
+        for (Alumno a : alumnos) {
+            if (a.cedula.equals(ced)) {
+                System.out.println("Esa cedula ya esta registrada.");
+                return;
+            }
+        }
+        System.out.print("Nombre: "); String nom = sc.nextLine().trim();
+        System.out.print("Email: "); String email = sc.nextLine().trim();
 
         ProgramaAcademico prog = null;
         while (prog == null) {
-            System.out.print("Tipo de programa (Curso / Diplomado / Bootcamp): ");
-            String tipo = scanner.nextLine().trim().toLowerCase();
+            System.out.print("Tipo (curso / diplomado / bootcamp): ");
+            String tipo = sc.nextLine().trim().toLowerCase();
             switch (tipo) {
                 case "curso" -> prog = new Curso();
                 case "diplomado" -> prog = new Diplomado();
                 case "bootcamp" -> prog = new Bootcamp();
-                default -> System.out.println("Error: Tipo no valido. Debe ser 'Curso', 'Diplomado' o 'Bootcamp'. Intente de nuevo.\n");
+                default -> System.out.println("Invalido, intenta de nuevo.");
             }
         }
 
-        Alumno al = new Alumno(ced, nom, email, prog);
-        alumnos.add(al);
-        guardarAlumnosTxt();
-        System.out.println("Alumno registrado exitosamente en " + prog.nombrePrograma + ".");
+        alumnos.add(new Alumno(ced, nom, email, prog));
+        guardarAlumnos();
+        System.out.println("Alumno registrado.");
     }
 
     public void cargarNotas() {
-        cargarDatosIniciales();
-        System.out.println("\n--- Cargar Notas ---");
-        System.out.print("Ingrese la cedula del alumno: ");
-        String ced = scanner.nextLine().trim();
+        cargarDatos();
+        System.out.println("\n--- CARGAR NOTAS (0 a 20) ---");
+        System.out.print("Cedula del alumno: ");
+        String ced = sc.nextLine().trim();
 
-        Alumno alumnoSel = null;
+        Alumno al = null;
         for (Alumno a : alumnos) {
             if (a.cedula.equals(ced)) {
-                alumnoSel = a;
+                al = a;
                 break;
             }
         }
-
-        if (alumnoSel == null) {
-            System.out.println("Alumno no encontrado.");
+        if (al == null) {
+            System.out.println("No se encontro el alumno.");
             return;
         }
 
-        System.out.println("Cargando notas para " + alumnoSel.nombre + " (" + alumnoSel.programa.nombrePrograma + "). Enter vacio para salir.");
-        int cant = alumnoSel.notas.size();
+        int cant = al.notas.size();
         while (cant < 3) {
-            System.out.print("Nota " + (cant + 1) + ": ");
-            String entrada = scanner.nextLine().trim();
-            if (entrada.isEmpty()) break;
+            System.out.print("Nota " + (cant + 1) + " (Enter para salir): ");
+            String txt = sc.nextLine().trim();
+            if (txt.isEmpty()) break;
             try {
-                double num = Double.parseDouble(entrada);
-                alumnoSel.registrarNota(num);
-                pilaNotas.push(new NotaRegistro(alumnoSel, num));
-                cant++;
+                double val = Double.parseDouble(txt);
+                if (val >= 0 && val <= 20) {
+                    al.registrarNota(val);
+                    pilaNotas.push(new NotaRegistro(al, val));
+                    cant++;
+                } else {
+                    System.out.println("Debe ser de 0 a 20.");
+                }
             } catch (NumberFormatException e) {
-                System.out.println("Nota invalida, ingrese un numero.");
+                System.out.println("Entrada no valida.");
             }
         }
-        guardarAlumnosTxt();
-        System.out.println("Notas actualizadas en disco.");
+        guardarAlumnos();
+        System.out.println("Notas actualizadas.");
     }
 
     public void deshacerNota() {
-        cargarDatosIniciales();
-        System.out.println("\n--- Deshacer Nota ---");
+        cargarDatos();
         if (pilaNotas.isEmpty()) {
-            System.out.println("No hay notas registradas en esta sesion para eliminar.");
+            System.out.println("No hay notas para deshacer.");
             return;
         }
-
         NotaRegistro reg = pilaNotas.pop();
-        Alumno alumnoActual = null;
+        Alumno al = null;
         for (Alumno a : alumnos) {
             if (a.cedula.equals(reg.alumno.cedula)) {
-                alumnoActual = a;
+                al = a;
                 break;
             }
         }
-
-        if (alumnoActual != null && alumnoActual.notas.contains(reg.nota)) {
-            alumnoActual.notas.remove(reg.nota);
-            guardarAlumnosTxt();
-            System.out.println("Se elimino la nota " + reg.nota + " de " + alumnoActual.nombre + " y se actualizo Alumnos.txt.");
+        if (al != null && al.notas.contains(reg.nota)) {
+            al.notas.remove(reg.nota);
+            guardarAlumnos();
+            System.out.println("Nota eliminada correctamente.");
         }
     }
 
     public void gestionarCertificados() {
-        cargarDatosIniciales();
-        System.out.println("\n--- EMISIÓN MASIVA DE CERTIFICADOS ---");
-        if (alumnos.isEmpty()) {
-            System.out.println("Sin alumnos cargados.");
-            return;
-        }
-
-        List<Alumno> cola = new ArrayList<>();
+        cargarDatos();
+        List<Alumno> aprobados = new ArrayList<>();
         for (Alumno a : alumnos) {
-            if (a.estaAprobado()) {
-                cola.add(a);
-            }
+            if (a.estaAprobado()) aprobados.add(a);
         }
 
-        if (cola.isEmpty()) {
-            System.out.println("No hay alumnos que cumplan las condiciones de aprobacion de su programa.");
+        if (aprobados.isEmpty()) {
+            System.out.println("No hay alumnos aprobados.");
             return;
         }
 
         try (PrintWriter pw = new PrintWriter(new FileWriter("certificados_pendientes.txt"))) {
-            pw.println("--- CERTIFICADOS PROCESADOS Y EMITIDOS ---");
             int i = 1;
-            for (Alumno c : cola) {
-                pw.println(i + ", Cedula: " + c.cedula + ", " + c.nombre + ", Prog: " + c.programa.nombrePrograma + ", Prom: " + String.format(Locale.US, "%.2f", c.calcularPromedio()) + ", Estatus: EMITIDO");
+            for (Alumno c : aprobados) {
+                pw.println(i + "," + c.cedula + "," + c.nombre + "," + c.programa.nombrePrograma + "," + String.format(Locale.US, "%.2f", c.calcularPromedio()) + ",EMITIDO");
                 i++;
             }
-        } catch (IOException e) {
-            System.out.println("Error al escribir el archivo de certificados: " + e.getMessage());
-        }
+        } catch (IOException ignored) {}
 
-        System.out.println("Se encontraron " + cola.size() + " alumno(s) aprobados.");
-        int emitidos = 0;
-        while (!cola.isEmpty()) {
-            Alumno emitido = cola.remove(0);
-            System.out.println("-> Certificado emitido: " + emitido.nombre + " | " + emitido.programa.nombrePrograma + " | Promedio: " + String.format(Locale.US, "%.2f", emitido.calcularPromedio()));
-            emitidos++;
+        System.out.println("Emitiendo certificados (" + aprobados.size() + "):");
+        for (Alumno c : aprobados) {
+            System.out.println("- " + c.nombre + " (" + c.programa.nombrePrograma + ") | Prom: " + String.format(Locale.US, "%.2f", c.calcularPromedio()));
         }
-        System.out.println("\nProceso finalizado. Se emitieron " + emitidos + " certificado(s).");
     }
 
     public void mostrarReporte() {
-        cargarDatosIniciales();
-        System.out.println("\n--- REPORTE PROFESORES ---");
-        if (profesores.isEmpty()) {
-            System.out.println("Sin profesores registrados.");
-        } else {
-            for (Profesor p : profesores) {
-                System.out.println("Cedula: " + p.cedula + " | Nombre: " + p.nombre + " | Materia: " + p.materia);
-            }
+        cargarDatos();
+        System.out.println("\n--- PROFESORES ---");
+        if (profesores.isEmpty()) System.out.println("Vacio.");
+        for (Profesor p : profesores) {
+            System.out.println(p.cedula + " | " + p.nombre + " | " + p.materia);
         }
 
-        System.out.println("\n--- REPORTE ALUMNOS ---");
-        if (alumnos.isEmpty()) {
-            System.out.println("Sin alumnos registrados.");
-        } else {
-            for (Alumno a : alumnos) {
-                double prom = a.calcularPromedio();
-                String est = a.estaAprobado() ? "Aprobado" : "Reprobado";
-                System.out.println("Cedula: " + a.cedula + " | Nombre: " + a.nombre + " | Programa: " + a.programa.nombrePrograma + " | Notas: " + a.notas + " | Promedio: " + String.format(Locale.US, "%.2f", prom) + " (" + est + ")");
-            }
+        System.out.println("\n--- ALUMNOS ---");
+        if (alumnos.isEmpty()) System.out.println("Vacio.");
+        for (Alumno a : alumnos) {
+            double prom = a.calcularPromedio();
+            String est = a.estaAprobado() ? "Aprobado" : "Reprobado";
+            System.out.println(a.cedula + " | " + a.nombre + " | " + a.programa.nombrePrograma + " | Notas: " + a.notas + " | Prom: " + String.format(Locale.US, "%.2f", prom) + " (" + est + ")");
         }
     }
 
     public void menu() {
-        String opc = "";
-        while (!opc.equals("7")) {
-            System.out.println("\n*** MENU SGA ***");
+        String op = "";
+        while (!op.equals("7")) {
+            System.out.println("\n*** MENU ***");
             System.out.println("1. Registrar Profesor");
             System.out.println("2. Registrar Alumno");
             System.out.println("3. Cargar Notas");
-            System.out.println("4. Deshacer Ultima Nota");
-            System.out.println("5. Emitir Todos los Certificados");
+            System.out.println("4. Deshacer Nota");
+            System.out.println("5. Emitir Certificados");
             System.out.println("6. Ver Reporte");
             System.out.println("7. Salir");
             System.out.print("Opcion: ");
-            opc = scanner.nextLine().trim();
+            op = sc.nextLine().trim();
 
-            switch (opc) {
+            switch (op) {
                 case "1" -> registrarProfesor();
                 case "2" -> registrarAlumno();
                 case "3" -> cargarNotas();
                 case "4" -> deshacerNota();
                 case "5" -> gestionarCertificados();
                 case "6" -> mostrarReporte();
-                case "7" -> System.out.println("Saliendo del programa...");
+                case "7" -> System.out.println("Saliendo...");
                 default -> System.out.println("Opcion no valida.");
             }
         }
@@ -378,7 +344,6 @@ class SGA {
 
 public class Main {
     public static void main(String[] args) {
-        SGA sistema = new SGA();
-        sistema.menu();
+        new SGA().menu();
     }
 }
