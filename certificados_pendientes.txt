@@ -1,3 +1,24 @@
---- CERTIFICADOS PROCESADOS Y EMITIDOS ---
-1, Cedula: 808, Juan, Prog: Curso, Prom: 14.00, Estatus: EMITIDO
-2, Cedula: 505, Flash, Prog: Bootcamp, Prom: 14.33, Estatus: EMITIDO
+=========================================
+
+REPORTE DE CERTIFICADOS PENDIENTES
+
+=========================================
+
+Total de graduandos en cola: 2
+
+1. [808] Juan
+
+- Programa: Curso
+
+- Promedio Final: 14.0
+
+- Estatus: APROBADO
+
+2. [505] Flash
+
+- Programa: Bootcamp
+
+- Promedio Final: 14.7
+
+- Estatus: APROBADO
+

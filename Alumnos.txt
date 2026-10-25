@@ -1,4 +1,4 @@
-606,Urie,Urie@mail.com,Diplomado,13.0,15.0
+606,Urie,Urie@mail.com,Diplomado,15.0,15.0
 808,Juan,Juan@mail.com,Curso,12.0,16.0,14.0
-505,Flash,Flash@mail.com,Bootcamp,16.0,11.0,16.0
+505,Flash,Flash@mail.com,Bootcamp,15.0,15.0,14.0
 607,Urie,Urie@mail.com,Diplomado,10.0,9.0,0.0

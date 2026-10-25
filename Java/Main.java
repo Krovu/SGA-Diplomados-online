@@ -43,7 +43,7 @@ class Diplomado extends ProgramaAcademico {
 
 class Bootcamp extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) { return promedio >= 16.0; }
+    public boolean esAprobado(double promedio) { return promedio >= 14.0; }
 }
 
 class Alumno extends Persona {
@@ -92,7 +92,7 @@ class SGA {
         cargarDatos();
     }
 
-    private void cargarDatos() {
+    public final void cargarDatos() {
         alumnos.clear();
         profesores.clear();
 
@@ -197,6 +197,7 @@ class SGA {
         while (prog == null) {
             System.out.print("Tipo (curso / diplomado / bootcamp): ");
             String tipo = sc.nextLine().trim().toLowerCase();
+
             switch (tipo) {
                 case "curso" -> prog = new Curso();
                 case "diplomado" -> prog = new Diplomado();
@@ -284,17 +285,21 @@ class SGA {
         }
 
         try (PrintWriter pw = new PrintWriter(new FileWriter("certificados_pendientes.txt"))) {
+            pw.println("=========================================\n");
+            pw.println("REPORTE DE CERTIFICADOS PENDIENTES\n");
+            pw.println("=========================================\n");
+            pw.println("Total de graduandos en cola: " + aprobados.size() + "\n");
             int i = 1;
             for (Alumno c : aprobados) {
-                pw.println(i + "," + c.cedula + "," + c.nombre + "," + c.programa.nombrePrograma + "," + String.format(Locale.US, "%.2f", c.calcularPromedio()) + ",EMITIDO");
+                pw.println(i + ". [" + c.cedula + "] " + c.nombre + "\n");
+                pw.println("- Programa: " + c.programa.nombrePrograma + "\n");
+                pw.println("- Promedio Final: " + String.format(Locale.US, "%.1f", c.calcularPromedio()) + "\n");
+                pw.println("- Estatus: APROBADO\n");
                 i++;
             }
         } catch (IOException ignored) {}
 
-        System.out.println("Emitiendo certificados (" + aprobados.size() + "):");
-        for (Alumno c : aprobados) {
-            System.out.println("- " + c.nombre + " (" + c.programa.nombrePrograma + ") | Prom: " + String.format(Locale.US, "%.2f", c.calcularPromedio()));
-        }
+        System.out.println("Se generó el reporte para " + aprobados.size() + " alumnos aprobados en 'certificados_pendientes.txt'.");
     }
 
     public void mostrarReporte() {
@@ -310,7 +315,7 @@ class SGA {
         for (Alumno a : alumnos) {
             double prom = a.calcularPromedio();
             String est = a.estaAprobado() ? "Aprobado" : "Reprobado";
-            System.out.println(a.cedula + " | " + a.nombre + " | " + a.programa.nombrePrograma + " | Notas: " + a.notas + " | Prom: " + String.format(Locale.US, "%.2f", prom) + " (" + est + ")");
+            System.out.println(a.cedula + " | " + a.nombre + " | " + a.programa.nombrePrograma + " | Notas: " + a.notas + " | Prom: " + String.format(Locale.US, "%.1f", prom) + " (" + est + ")");
         }
     }
 

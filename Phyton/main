@@ -27,7 +27,7 @@ class Diplomado(ProgramaAcademico):
 
 class Bootcamp(ProgramaAcademico):
     def es_aprobado(self, promedio):
-        return promedio >= 16.0
+        return promedio >= 14.0
 
 class Alumno(Persona):
     def __init__(self, cedula, nombre, email, programa):
@@ -197,14 +197,19 @@ class SGA:
 
         try:
             with open("certificados_pendientes.txt", "w", encoding="utf-8") as f:
+                f.write("=========================================\n\n")
+                f.write("REPORTE DE CERTIFICADOS PENDIENTES\n\n")
+                f.write("=========================================\n\n")
+                f.write(f"Total de graduandos en cola: {len(aprobados)}\n\n")
                 for i, c in enumerate(aprobados, 1):
-                    f.write(f"{i},{c.cedula},{c.nombre},{c.programa.nombre_programa},{c.calcular_promedio():.2f},EMITIDO\n")
-        except:
-            print("Error al escribir el archivo de certificados.")
+                    f.write(f"{i}. [{c.cedula}] {c.nombre}\n\n")
+                    f.write(f"- Programa: {c.programa.nombre_programa}\n\n")
+                    f.write(f"- Promedio Final: {c.calcular_promedio():.1f}\n\n")
+                    f.write("- Estatus: APROBADO\n\n")
+        except Exception as e:
+            print("Error al escribir certificados:", e)
 
-        print(f"Se emitieron {len(aprobados)} certificados:")
-        for c in aprobados:
-            print(f"- {c.nombre} ({c.programa.nombre_programa}) con promedio {c.calcular_promedio():.2f}")
+        print(f"Se generó el reporte para {len(aprobados)} alumnos aprobados en 'certificados_pendientes.txt'.")
 
     def mostrar_reporte(self):
         self.cargar_datos()
@@ -218,7 +223,7 @@ class SGA:
         for a in self.alumnos:
             prom = a.calcular_promedio()
             est = "Aprobado" if a.esta_aprobado() else "Reprobado"
-            print(f"{a.cedula} | {a.nombre} | {a.programa.nombre_programa} | Notas: {a.notas} | Prom: {prom:.2f} ({est})")
+            print(f"{a.cedula} | {a.nombre} | {a.programa.nombre_programa} | Notas: {a.notas} | Prom: {prom:.1f} ({est})")
 
     def menu(self):
         op = ""
@@ -235,7 +240,7 @@ class SGA:
 
             if op == "1": self.registrar_profesor()
             elif op == "2": self.registrar_alumno()
-            elif op.strip() == "3": self.cargar_notas()
+            elif op == "3": self.cargar_notas()
             elif op == "4": self.deshacer_nota()
             elif op == "5": self.gestionar_certificados()
             elif op == "6": self.mostrar_reporte()
