@@ -28,22 +28,34 @@ abstract class ProgramaAcademico {
         this.nombrePrograma = this.getClass().getSimpleName();
     }
 
-    public abstract boolean esAprobado(double promedio);
+    public abstract boolean esAprobado(double promedio, List<Double> notas);
 }
 
 class Curso extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) { return promedio >= 10.0; }
+    public boolean esAprobado(double promedio, List<Double> notas) { 
+        return promedio >= 10.0; 
+    }
 }
 
 class Diplomado extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) { return promedio >= 14.0; }
+    public boolean esAprobado(double promedio, List<Double> notas) { 
+        return promedio >= 14.0; 
+    }
 }
 
 class Bootcamp extends ProgramaAcademico {
     @Override
-    public boolean esAprobado(double promedio) { return promedio >= 14.0; }
+    public boolean esAprobado(double promedio, List<Double> notas) {
+        // Debe tener las 3 evaluaciones obligatorias (si falta alguna cuenta como 0 y no pasa)
+        if (notas.size() < 3) return false;
+        // Todas las notas deben ser >= 14.0
+        for (double n : notas) {
+            if (n < 14.0) return false;
+        }
+        return true;
+    }
 }
 
 class Alumno extends Persona {
@@ -68,7 +80,7 @@ class Alumno extends Persona {
     }
 
     public boolean estaAprobado() {
-        return programa.esAprobado(calcularPromedio());
+        return programa.esAprobado(calcularPromedio(), notas);
     }
 }
 

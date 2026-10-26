@@ -14,20 +14,25 @@ class ProgramaAcademico:
     def __init__(self):
         self.nombre_programa = self.__class__.__name__
 
-    def es_aprobado(self, promedio):
+    def es_aprobado(self, promedio, notas):
         return promedio >= 10.0
 
 class Curso(ProgramaAcademico):
-    def es_aprobado(self, promedio):
+    def es_aprobado(self, promedio, notas):
         return promedio >= 10.0
 
 class Diplomado(ProgramaAcademico):
-    def es_aprobado(self, promedio):
+    def es_aprobado(self, promedio, notas):
         return promedio >= 14.0
 
 class Bootcamp(ProgramaAcademico):
-    def es_aprobado(self, promedio):
-        return promedio >= 14.0
+    def es_aprobado(self, promedio, notas):
+        if len(notas) < 3:
+            return False
+        for n in notas:
+            if n < 14.0:
+                return False
+        return True
 
 class Alumno(Persona):
     def __init__(self, cedula, nombre, email, programa):
@@ -44,7 +49,12 @@ class Alumno(Persona):
         return sum(self.notas) / 3.0
 
     def esta_aprobado(self):
-        return self.programa.es_aprobado(self.calcular_promedio())
+        return self.programa.es_aprobado(self.calcular_promedio(), self.notas)
+
+class NotaRegistro:
+    def __init__(self, alumno, nota):
+        self.alumno = alumno
+        self.nota = nota
 
 class SGA:
     def __init__(self):
@@ -166,7 +176,7 @@ class SGA:
                 val = float(txt)
                 if 0 <= val <= 20:
                     al.registrar_nota(val)
-                    self.pila_notas.append((al, val))
+                    self.pila_notas.append(NotaRegistro(al, val))
                     cant += 1
                 else:
                     print("Nota fuera de rango (debe ser de 0 a 20).")
@@ -181,12 +191,12 @@ class SGA:
         if not self.pila_notas:
             print("No hay notas para deshacer.")
             return
-        al_ref, nota = self.pila_notas.pop()
-        al = next((x for x in self.alumnos if x.cedula == al_ref.cedula), None)
-        if al and nota in al.notas:
-            al.notas.remove(nota)
+        reg = self.pila_notas.pop()
+        al = next((x for x in self.alumnos if x.cedula == reg.alumno.cedula), None)
+        if al and reg.nota in al.notas:
+            al.notas.remove(reg.nota)
             self.guardar_alumnos()
-            print(f"Se quito la nota {nota} de {al.nombre}.")
+            print(f"Se quito la nota {reg.nota} de {al.nombre}.")
 
     def gestionar_certificados(self):
         self.cargar_datos()
