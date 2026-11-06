@@ -1,0 +1,16 @@
+=========================================
+
+REPORTE DE CERTIFICADOS PENDIENTES
+
+=========================================
+
+Total de graduandos en cola: 1
+
+1. [0002] Uriel
+
+- Programa: Curso
+
+- Promedio Final: 14.3
+
+- Estatus: APROBADO
+

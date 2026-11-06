@@ -1,0 +1,2 @@
+0001,Tom,Tom@mail.com,Diplomado,14,16,11
+0002,Uriel,Urie@mail.com,Curso,15,13,15
