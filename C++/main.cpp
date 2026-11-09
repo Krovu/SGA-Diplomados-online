@@ -311,7 +311,6 @@ public:
     }
 
     void deshacerNota() {
-        cargarDatos();
         if (pilaNotas.empty()) {
             cout << "No hay notas para deshacer.\n";
             return;
@@ -333,7 +332,11 @@ public:
                 al->notas.erase(it);
                 guardarAlumnos();
                 cout << "Nota eliminada correctamente.\n";
+            } else {
+                cout << "La nota ya no se encuentra registrada en el alumno.\n";
             }
+        } else {
+            cout << "El alumno asociado a la nota ya no existe.\n";
         }
     }
 

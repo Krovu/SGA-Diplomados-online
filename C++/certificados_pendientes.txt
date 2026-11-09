@@ -10,7 +10,7 @@ Total de graduandos en cola: 1
 
 - Programa: Curso
 
-- Promedio Final: 14.3
+- Promedio Final: 13.3
 
 - Estatus: APROBADO
 
