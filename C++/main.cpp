@@ -97,10 +97,10 @@ public:
 
 class NotaRegistro {
 public:
-    Alumno* alumno;
+    string cedulaAlumno; // Almacenamos la cédula en lugar del puntero Alumno*
     double nota;
 
-    NotaRegistro(Alumno* a, double n) : alumno(a), nota(n) {}
+    NotaRegistro(string ced, double n) : cedulaAlumno(ced), nota(n) {}
 };
 
 // --- SISTEMA GESTIÓN ACADÉMICA (SGA) ---
@@ -297,7 +297,7 @@ public:
                 double val = stod(txt);
                 if (val >= 0.0 && val <= 20.0) {
                     al->registrarNota(val);
-                    pilaNotas.push(NotaRegistro(al, val));
+                    pilaNotas.push(NotaRegistro(al->cedula, val)); // Usamos la cédula
                     cant++;
                 } else {
                     cout << "Debe ser de 0 a 20.\n";
@@ -320,7 +320,7 @@ public:
 
         Alumno* al = nullptr;
         for (Alumno* a : alumnos) {
-            if (a->cedula == reg.alumno->cedula) {
+            if (a->cedula == reg.cedulaAlumno) {
                 al = a;
                 break;
             }
@@ -331,12 +331,12 @@ public:
             if (it != al->notas.end()) {
                 al->notas.erase(it);
                 guardarAlumnos();
-                cout << "Nota eliminada correctamente.\n";
+                cout << "Nota " << reg.nota << " eliminada correctamente del alumno " << al->nombre << ".\n";
             } else {
                 cout << "La nota ya no se encuentra registrada en el alumno.\n";
             }
         } else {
-            cout << "El alumno asociado a la nota ya no existe.\n";
+            cout << "El alumno con cedula " << reg.cedulaAlumno << " ya no existe en el sistema.\n";
         }
     }
 
